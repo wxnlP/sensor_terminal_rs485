@@ -16,5 +16,10 @@
     "--query-driver=/home/lzh/.espressif/tools/xtensa-esp-elf/esp-14.2.0_20241119/xtensa-esp-elf/bin/xtensa-esp32-elf-gcc",
     "--compile-commands-dir=/home/lzh/EspWkspace/sensor_terminal_rs485/build"
   ],
-  "idf.flashType": "UART"
+  "idf.flashType": "UART",
+  "files.associations": {
+    "esp_log.h": "c",
+    "stdint.h": "c",
+    "uart.h": "c"
+  }
 }
