@@ -88,6 +88,7 @@ int UartSend(uint8_t uart_num, const uint8_t *data, uint32_t len)
     int ret = uart_write_bytes(uart_num, (const uint8_t *)data, (size_t)len);
     
     if (g_rs485_flag == (1 << (uart_num + 1))) {
+        uart_wait_tx_done(uart_num, portMAX_DELAY);
         gpio_set_level(RS485_DR_PIN, 0);
     }
 
@@ -98,11 +99,11 @@ int UartSendString(uint8_t uart_num,const char *str)
 {
     if (g_rs485_flag == (1 << (uart_num + 1))) {
         gpio_set_level(RS485_DR_PIN, 1);
-    }   
+    }  
     
     int ret = uart_write_bytes(uart_num, (const char *)str, strlen(str));
-    
     if (g_rs485_flag == (1 << (uart_num + 1))) {
+        uart_wait_tx_done(uart_num, portMAX_DELAY);
         gpio_set_level(RS485_DR_PIN, 0);
     }
     return ret;
