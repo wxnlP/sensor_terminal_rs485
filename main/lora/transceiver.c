@@ -44,25 +44,22 @@ static void print_sensor_data(const SensorDataFrame_t *data)
 
 static int TransceiverSensorFrameAnalysis(const uint8_t *frame, SensorDataFrame_t *out_data)
 {
-    if (frame[1] == 0x03 && frame[2] > 0) {
-        out_data->index = frame[0];
-        out_data->battery = frame[3];
-        out_data->signal = -(frame[4] / 2);
-        out_data->suc_signal = (frame[5] << 8) | frame[6];
-        out_data->fail_signal = (frame[7] << 8) | frame[8];
-        out_data->signal_count = frame[9];
-        out_data->vaild_count = frame[10];
-        out_data->temperature = ((frame[11] << 8) | frame[12]) / 100 -40;
-        out_data->humidity = ((frame[13] << 8) | frame[14]) / 100;
-        out_data->ec = (frame[15] << 8) | frame[16];
-        out_data->ph = (frame[17] << 8) | frame[18];
-        out_data->n = (frame[19] << 8) | frame[20];
-        out_data->p = (frame[21] << 8) | frame[22];
-        out_data->k = (frame[23] << 8) | frame[24];
-        return 0;
-    } else {
-        return -1;
-    }
+    
+    out_data->index = frame[0];
+    out_data->battery = frame[3];
+    out_data->signal = -(frame[4] / 2);
+    out_data->suc_signal = (frame[5] << 8) | frame[6];
+    out_data->fail_signal = (frame[7] << 8) | frame[8];
+    out_data->signal_count = frame[9];
+    out_data->vaild_count = frame[10];
+    out_data->temperature = ((frame[11] << 8) | frame[12]) / 10.0f - 30.0f;
+    out_data->humidity = ((frame[13] << 8) | frame[14]) / 10.0f;
+    out_data->ec = (frame[15] << 8) | frame[16];
+    out_data->ph = ((frame[17] << 8) | frame[18]) / 10.0f;
+    out_data->n = (frame[19] << 8) | frame[20];
+    out_data->p = (frame[21] << 8) | frame[22];
+    out_data->k = (frame[23] << 8) | frame[24];
+    return 0;
     
 }
 
@@ -82,8 +79,10 @@ static void Uart2QueueTask(void *arg)
                     UartReceive(LORA_UART_NUM, data, event.size);
                     TransceiverSensorFrameAnalysis(data, &real_sensor_data);
                     print_sensor_data(&real_sensor_data);
-
-                    ESP_LOGI(LORA_TAG, "%s", (char *)data);
+                    for (int i = 0; i < event.size; i++) {
+                        printf("%X ", data[i]);
+                    }
+                    printf("\n");
                     break;
                 case UART_FIFO_OVF:
                     ESP_LOGW(LORA_TAG, "FIFO over.");

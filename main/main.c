@@ -11,7 +11,7 @@
 #define UART_SEND_DEMO      (0)
 #define UART_RECEIVE_DEMO   (0)
 
-static const char *MainTag = "main";
+// static const char *MainTag = "main";
 
 void app_main(void)
 {
@@ -19,9 +19,9 @@ void app_main(void)
     UartInit(2, 115200);
     RS485Init(2);
     UartEventHandleTasks();
-    int value = 0;
-    uint8_t buffer[32] = {0};
-    char rev_buffer[16] = {0};
+    // int value = 0;
+    // uint8_t buffer[32] = {0};
+    // char rev_buffer[16] = {0};
    
     while(true)
     {
@@ -48,9 +48,12 @@ void app_main(void)
 
         #if UART_RECEIVE_DEMO != 1 && UART_SEND_DEMO != 1
         LedCtrl(0);
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        vTaskDelay(pdMS_TO_TICKS(500));
         LedCtrl(1);
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        vTaskDelay(pdMS_TO_TICKS(500));
+        // RS485SendEnable();
+        TransceiverSensorDataRequest(1);
+
         #endif
     }
 }

@@ -25,7 +25,7 @@ extern "C" {
 #endif
 
 void UartEventHandleTasks(void);
-int TransceiverSendRequest(uint8_t address);
+int TransceiverSensorDataRequest(uint8_t address);
 
 #ifdef __cplusplus
 }
