@@ -10,8 +10,8 @@
 #define UART0_RX_PIN (3)
 #define UART1_TX_PIN (10)
 #define UART1_RX_PIN (9)
-#define UART2_TX_PIN (17)
-#define UART2_RX_PIN (16)
+#define UART2_TX_PIN (5)
+#define UART2_RX_PIN (4)
 
 #define UART_RX_BUFFER_SIZE (1024 * 2)
 #define UART_TX_BUFFER_SIZE (1024 * 2)
