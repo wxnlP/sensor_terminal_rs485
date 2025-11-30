@@ -4,8 +4,9 @@
 #include "freertos/task.h"
 #include "esp_log.h"
 #include "gpio/led.h"
-#include "uart/uart.h"
 #include "lora/transceiver.h"
+#include "lora/mqtt_lora.h"
+#include "tasks/main_tasks.h"
 
 
 #define UART_SEND_DEMO      (0)
@@ -16,9 +17,14 @@
 void app_main(void)
 {
     LedInit();
-    UartInit(2, 115200);
-    RS485Init(2);
-    UartEventHandleTasks();
+    TransceiverInit();
+    /* New freertos tasks */
+    NewUartEventHandleTask();
+    NewWifiStaTask();
+    vTaskDelay(1000);
+    NewMqttConnEventHandleTask();
+    NewMqttSubQueueHandleTask();
+
     // int value = 0;
     // uint8_t buffer[32] = {0};
     // char rev_buffer[16] = {0};
@@ -48,10 +54,9 @@ void app_main(void)
 
         #if UART_RECEIVE_DEMO != 1 && UART_SEND_DEMO != 1
         LedCtrl(0);
-        vTaskDelay(pdMS_TO_TICKS(500));
+        vTaskDelay(pdMS_TO_TICKS(5000));
         LedCtrl(1);
-        vTaskDelay(pdMS_TO_TICKS(500));
-        // RS485SendEnable();
+        vTaskDelay(pdMS_TO_TICKS(5000));
         TransceiverSensorDataRequest(1);
 
         #endif

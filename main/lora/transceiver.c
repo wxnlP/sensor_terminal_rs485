@@ -1,11 +1,11 @@
 #include "transceiver.h"
 #include "driver/uart.h"
-#include "uart/uart.h"
 #include "esp_log.h"
 
 
 #define LORA_UART_NUM (2)
 
+static QueueHandle_t g_sensorDataHandle;
 static const char *LORA_TAG = "transceiver";
 static const char *TAG = "DEBUG";
 
@@ -42,10 +42,17 @@ static void print_sensor_data(const SensorDataFrame_t *data)
     ESP_LOGI(TAG, "==================================================");
 }
 
+static int TransceiverGenerateDeviceNumber(uint8_t address, char *device_num, size_t size)
+{
+    const char *prefix = "ss20251130";
+    return snprintf(device_num, size, "%s%04d", prefix, address);
+}
+
 static int TransceiverSensorFrameAnalysis(const uint8_t *frame, SensorDataFrame_t *out_data)
 {
     
-    out_data->index = frame[0];
+    // out_data->index = frame[0];
+    TransceiverGenerateDeviceNumber(frame[0], out_data->index, 15);
     out_data->battery = frame[3];
     out_data->signal = -(frame[4] / 2);
     out_data->suc_signal = (frame[5] << 8) | frame[6];
@@ -78,11 +85,12 @@ static void Uart2QueueTask(void *arg)
                     ESP_LOGI(LORA_TAG, "UART_DATA Event: RX_DATA, Size: %d", event.size);
                     UartReceive(LORA_UART_NUM, data, event.size);
                     TransceiverSensorFrameAnalysis(data, &real_sensor_data);
+                    xQueueSend(g_sensorDataHandle, &real_sensor_data, 0);
                     print_sensor_data(&real_sensor_data);
-                    for (int i = 0; i < event.size; i++) {
-                        printf("%X ", data[i]);
-                    }
-                    printf("\n");
+                    // for (int i = 0; i < event.size; i++) {
+                    //     printf("%X ", data[i]);
+                    // }
+                    // printf("\n");
                     break;
                 case UART_FIFO_OVF:
                     ESP_LOGW(LORA_TAG, "FIFO over.");
@@ -96,7 +104,7 @@ static void Uart2QueueTask(void *arg)
     vTaskDelete(NULL);
 }
 
-void UartEventHandleTasks(void)
+void NewUartEventHandleTask(void)
 {
     xTaskCreate(Uart2QueueTask, "uart_task", 1024*5, NULL, 24, NULL);
 }
@@ -117,6 +125,18 @@ static uint16_t ModbusCRC16(const uint8_t *frame)
         }
     }
     return CRC;
+}
+
+void TransceiverInit(void)
+{
+    UartInit(2, 115200);
+    RS485Init(2);
+    g_sensorDataHandle = xQueueCreate(10, sizeof(SensorDataFrame_t));
+}
+
+QueueHandle_t TransceiverGetSensorQueueHandle(void)
+{
+    return g_sensorDataHandle;
 }
 
 int TransceiverSensorDataRequest(uint8_t address)
