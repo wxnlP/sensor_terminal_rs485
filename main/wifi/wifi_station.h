@@ -5,6 +5,7 @@ extern "C" {
 #endif
 
 void WifiStaInit(void);
+void WifiStaReconnect(void);
 
 #ifdef __c_plusplus
 }

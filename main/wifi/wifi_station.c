@@ -13,7 +13,7 @@
 #define WIFI_PASSWORD               "123456789"
 #define WIFI_CONNECT_MAX_TIMES      10
 #define WIFI_CONNECTED_EVENT_BIT    (1<<0)
-#define WIFI_FAIL_EVENT_BIT         (1<<1)
+#define WIFI_DISCONNECTED_EVENT_BIT (1<<1)
 
 /* ------------------------------------ 全局变量 ------------------------------------ */
 static const char *WIFI_TAG = "wifi_sta";
@@ -33,19 +33,12 @@ static void wifi_evnet_handler(void* event_handler_arg, esp_event_base_t event_b
         // 连接 wifi
         ESP_ERROR_CHECK(esp_wifi_connect());
     } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED) {
-        if (try_times < WIFI_CONNECT_MAX_TIMES) {
-            esp_wifi_connect();
-            try_times ++;
-            ESP_LOGI(WIFI_TAG, "Try to connect for %d times ...", try_times);
-        } else {
-            xEventGroupSetBits(g_wifiEventGroupHandle, WIFI_FAIL_EVENT_BIT);
-        }
+        xEventGroupSetBits(g_wifiEventGroupHandle, WIFI_DISCONNECTED_EVENT_BIT);
     } else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {
         ip_event_got_ip_t *ip_event = (ip_event_got_ip_t *)event_data;
         ESP_LOGI(WIFI_TAG, "Get IP:" IPSTR, IP2STR(&ip_event->ip_info.ip));
         try_times = 0;
         xEventGroupSetBits(g_wifiEventGroupHandle, WIFI_CONNECTED_EVENT_BIT);
-
     }
 
 }
@@ -108,7 +101,7 @@ void WifiStaInit(void)
     // 等待事件组事件
     EventBits_t uxBits = xEventGroupWaitBits(
                         g_wifiEventGroupHandle,
-                        WIFI_CONNECTED_EVENT_BIT | WIFI_FAIL_EVENT_BIT,
+                        WIFI_CONNECTED_EVENT_BIT | WIFI_DISCONNECTED_EVENT_BIT,
                         pdFALSE,
                         pdFALSE,
                         portMAX_DELAY);
@@ -116,20 +109,37 @@ void WifiStaInit(void)
     // 判断结果
     if (uxBits & WIFI_CONNECTED_EVENT_BIT) {
         ESP_LOGI(WIFI_TAG, "WiFi %s 连接成功.", WIFI_SSID);
-    } else if (uxBits & WIFI_CONNECTED_EVENT_BIT) {
+    } else if (uxBits & WIFI_DISCONNECTED_EVENT_BIT) {
         ESP_LOGE(WIFI_TAG, "WiFi %s 连接失败.", WIFI_SSID);
     } else {
         ESP_LOGW(WIFI_TAG, "Unexpected event.");
     }
 
-    // ESP_LOGI(WIFI_TAG, "4.连接阶段");
-
-    // ESP_LOGI(WIFI_TAG, "5.获取IP阶段");
-
-    // ESP_LOGI(WIFI_TAG, "6.断开阶段");
-
-    // ESP_LOGI(WIFI_TAG, "7.IP更改阶段");
-
-    // ESP_LOGI(WIFI_TAG, "8.清理阶段");
 }
 
+void WifiStaReconnect(void)
+{
+    EventBits_t uxBits = xEventGroupWaitBits(
+                            g_wifiEventGroupHandle,
+                            WIFI_CONNECTED_EVENT_BIT | WIFI_DISCONNECTED_EVENT_BIT,
+                            pdTRUE,
+                            pdFALSE,
+                            portMAX_DELAY);
+    if (uxBits & WIFI_DISCONNECTED_EVENT_BIT) {
+        while (true) {
+            esp_wifi_connect();
+            uxBits = xEventGroupWaitBits(
+                        g_wifiEventGroupHandle,
+                        WIFI_CONNECTED_EVENT_BIT | WIFI_DISCONNECTED_EVENT_BIT,
+                        pdTRUE,
+                        pdFALSE,
+                        pdMS_TO_TICKS(500));
+            if (uxBits & WIFI_CONNECTED_EVENT_BIT) {
+                ESP_LOGI(WIFI_TAG, "WiFi %s 重新连接成功.", WIFI_SSID);
+                break;
+            }
+            vTaskDelay(pdMS_TO_TICKS(500));
+        }
+    }
+
+}
