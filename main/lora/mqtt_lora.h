@@ -4,7 +4,7 @@
 
 typedef struct {
     int time;
-    char unit[2];
+    char unit;
 } TimeIntervalSetting_t;
 
 #ifdef __cplusplus

@@ -93,11 +93,18 @@ static int MqttAnalysisSubPyload(const char *json_str, TimeIntervalSetting_t *ti
         cJSON_Delete(root);
         return -1;
     }
-    size_t unit_len = strlen(unit_item->valuestring);
+    // 假设 "unit" 字段仅包含一个字符
+    const char *unit_string = unit_item->valuestring;
+    
+    // 确保字符串不为空
+    if (unit_string == NULL || unit_string[0] == '\0') {
+        cJSON_Delete(root);
+        return -1; 
+    }
 
-    // unit_len = MIN(unit_len, sizeof(ti->unit) - 1);
-    strncpy(ti->unit, unit_item->valuestring, 1);
-    ti->unit[unit_len] = '\0';
+    // 取字符串的第一个字符，赋值给结构体的 character 成员
+    ti->unit = unit_string[0];
+
     cJSON_Delete(root);
 
     return 0;
@@ -133,11 +140,9 @@ static void MqttConnEventHandleTask(void *arg)
                     ESP_LOGI(MQTT_LORA, "Disconnect MQTT Broker.");
                     break;
                 }
+                ESP_LOGI(MQTT_LORA, "Time interval: %llu", g_uploadTimeInterval);
                 vTaskDelay(pdMS_TO_TICKS(g_uploadTimeInterval));
             }
-            /* 处理断线重连 */
-
-            /* 处理断线重连 */
         }
     }
 }
@@ -148,21 +153,41 @@ static void MqttSubQueueHandleTask(void *arg)
     MqttSubData_t sub_data;
     TimeIntervalSetting_t time_setting;
     QueueHandle_t queue_handle = MqttGetSubQueueHandle();
+    // const char *test = "{ \"time\": 60, \"unit\":\"S\"}";
+    // MqttAnalysisSubPyload(test, &time_setting);
+    // printf("time setting: %d %d %d\n", time_setting.time, time_setting.unit, (time_setting.unit == 'S'));
     while (true)
     {
         if (xQueueReceive(queue_handle, &sub_data, portMAX_DELAY) == pdTRUE) {
             MqttAnalysisSubPyload(sub_data.data, &time_setting);
-            switch (time_setting.unit[0]) {
+            printf("time setting: %d %d\n", time_setting.time, time_setting.unit);
+            switch (time_setting.unit) {
                 case 'S':
+                    ESP_LOGI(MQTT_LORA, "修改单位S");
+                    g_uploadTimeInterval = time_setting.time * S;
+                    break;
+                case 's':
+                    ESP_LOGI(MQTT_LORA, "修改单位S");
                     g_uploadTimeInterval = time_setting.time * S;
                     break;
                 case 'M':
+                    ESP_LOGI(MQTT_LORA, "修改单位M");
+                    g_uploadTimeInterval = time_setting.time * M;
+                    break;
+                case 'm':
+                    ESP_LOGI(MQTT_LORA, "修改单位M");
                     g_uploadTimeInterval = time_setting.time * M;
                     break;
                 case 'H':
+                    ESP_LOGI(MQTT_LORA, "修改单位H");
+                    g_uploadTimeInterval = time_setting.time * H;
+                    break;
+                case 'h':
+                    ESP_LOGI(MQTT_LORA, "修改单位H");
                     g_uploadTimeInterval = time_setting.time * H;
                     break;
                 default:
+                    ESP_LOGI(MQTT_LORA, "格式错误❌️");
                     g_uploadTimeInterval = DEFAULT_UPLOAD_TIME_INTERVAL;
                     break;
             }
