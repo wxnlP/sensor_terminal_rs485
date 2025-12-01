@@ -21,7 +21,7 @@ void app_main(void)
     /* New freertos tasks */
     NewUartEventHandleTask();
     NewWifiStaTask();
-    vTaskDelay(1000);
+    vTaskDelay(pdMS_TO_TICKS(1000));
     NewMqttConnEventHandleTask();
     NewMqttSubQueueHandleTask();
 

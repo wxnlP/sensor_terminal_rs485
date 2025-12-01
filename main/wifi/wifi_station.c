@@ -9,7 +9,7 @@
 
 
 /* ------------------------------------ 宏定义 ------------------------------------- */
-#define WIFI_SSID                   "Mate70"
+#define WIFI_SSID                   "pi"
 #define WIFI_PASSWORD               "123456789"
 #define WIFI_CONNECT_MAX_TIMES      10
 #define WIFI_CONNECTED_EVENT_BIT    (1<<0)
@@ -111,6 +111,7 @@ void WifiStaInit(void)
         ESP_LOGI(WIFI_TAG, "WiFi %s 连接成功.", WIFI_SSID);
     } else if (uxBits & WIFI_DISCONNECTED_EVENT_BIT) {
         ESP_LOGE(WIFI_TAG, "WiFi %s 连接失败.", WIFI_SSID);
+        esp_wifi_connect();
     } else {
         ESP_LOGW(WIFI_TAG, "Unexpected event.");
     }

@@ -20,6 +20,8 @@ static void WifiStaTask(void *arg)
 
     WifiStaInit();
 
+    vTaskDelay(pdMS_TO_TICKS(1000));
+
     MqttLoraInit();
 
     while (true)
