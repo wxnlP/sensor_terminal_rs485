@@ -48,24 +48,35 @@ static int TransceiverGenerateDeviceNumber(uint8_t address, char *device_num, si
     return snprintf(device_num, size, "%s%04d", prefix, address);
 }
 
-static int TransceiverSensorFrameAnalysis(const uint8_t *frame, SensorDataFrame_t *out_data)
+static int TransceiverSensorFrameAnalysis(const uint8_t *frame, SensorDataFrame_t *out_data, size_t size)
 {
+    int index = 0;
+    for (int i = 0; i < size; i++) {
+        if (frame[i]) {
+            index = i;
+            break;
+        }
+    }
+
+    // 检验土壤传感器的字节数
+    if (size - index != 37) {
+        return -1;
+    }
     
-    // out_data->index = frame[0];
-    TransceiverGenerateDeviceNumber(frame[0], out_data->index, 15);
-    out_data->battery = frame[3];
-    out_data->signal = -(frame[4] / 2);
-    out_data->suc_signal = (frame[5] << 8) | frame[6];
-    out_data->fail_signal = (frame[7] << 8) | frame[8];
-    out_data->signal_count = frame[9];
-    out_data->vaild_count = frame[10];
-    out_data->temperature = ((frame[11] << 8) | frame[12]) / 10.0f - 30.0f;
-    out_data->humidity = ((frame[13] << 8) | frame[14]) / 10.0f;
-    out_data->ec = (frame[15] << 8) | frame[16];
-    out_data->ph = ((frame[17] << 8) | frame[18]) / 10.0f;
-    out_data->n = (frame[19] << 8) | frame[20];
-    out_data->p = (frame[21] << 8) | frame[22];
-    out_data->k = (frame[23] << 8) | frame[24];
+    TransceiverGenerateDeviceNumber(frame[index], out_data->index, 15);
+    out_data->battery = frame[index + 3];
+    out_data->signal = -(frame[index + 4] / 2);
+    out_data->suc_signal = (frame[index + 5] << 8) | frame[index + 6];
+    out_data->fail_signal = (frame[index + 7] << 8) | frame[index + 8];
+    out_data->signal_count = frame[index + 9];
+    out_data->vaild_count = frame[index + 10];
+    out_data->temperature = ((frame[index + 11] << 8) | frame[index + 12]) / 10.0f - 30.0f;
+    out_data->humidity = ((frame[index + 13] << 8) | frame[index + 14]) / 10.0f;
+    out_data->ec = (frame[index + 15] << 8) | frame[index + 16];
+    out_data->ph = ((frame[index + 17] << 8) | frame[index + 18]) / 10.0f;
+    out_data->n = (frame[index + 19] << 8) | frame[index + 20];
+    out_data->p = (frame[index + 21] << 8) | frame[index + 22];
+    out_data->k = (frame[index + 23] << 8) | frame[index + 24];
     return 0;
     
 }
@@ -84,13 +95,15 @@ static void Uart2QueueTask(void *arg)
                 case UART_DATA:
                     ESP_LOGI(LORA_TAG, "UART_DATA Event: RX_DATA, Size: %d", event.size);
                     UartReceive(LORA_UART_NUM, data, event.size);
-                    TransceiverSensorFrameAnalysis(data, &real_sensor_data);
-                    xQueueSend(g_sensorDataHandle, &real_sensor_data, 0);
-                    print_sensor_data(&real_sensor_data);
-                    // for (int i = 0; i < event.size; i++) {
-                    //     printf("%X ", data[i]);
-                    // }
-                    // printf("\n");
+                    if (TransceiverSensorFrameAnalysis(data, &real_sensor_data, event.size) != -1) {
+                        xQueueSend(g_sensorDataHandle, &real_sensor_data, 0);
+                        ESP_LOGI(LORA_TAG, "Vaild frame.");
+                        print_sensor_data(&real_sensor_data);
+                    }
+                    for (int i = 0; i < event.size; i++) {
+                        printf("%X ", data[i]);
+                    }
+                    printf("\n");
                     break;
                 case UART_FIFO_OVF:
                     ESP_LOGW(LORA_TAG, "FIFO over.");
