@@ -9,8 +9,8 @@
 
 #define MQTT_CONNECTED_BIT      (1<<0)
 #define MQTT_DISCONNECTED_BIT   (1<<1)
-#define MAX_TOPIC_LEN    32
-#define MAX_DATA_LEN     64
+#define MAX_TOPIC_LEN    64
+#define MAX_DATA_LEN     (128 * 4)
 
 typedef struct {
     char topic[MAX_TOPIC_LEN];

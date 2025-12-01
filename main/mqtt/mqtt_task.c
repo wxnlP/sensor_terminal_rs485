@@ -44,9 +44,6 @@ static void mqtt_event_handle(void* event_handler_arg, esp_event_base_t event_ba
         case MQTT_EVENT_DATA:
             ESP_LOGI(MQTT_TASK, "Trigger event: MQTT_EVENT_DATA");
             /* 收到订阅话题的消息 */
-            ESP_LOGI(MQTT_TASK, "Received topic:\n[%.*s]", event->topic_len, event->topic);
-            ESP_LOGI(MQTT_TASK, "data:\n[%.*s]", event->data_len, event->data);
-            
             strncpy(sub_data.topic, event->topic, event->topic_len);
             sub_data.topic[event->topic_len] = '\0'; 
             sub_data.topic_len = event->topic_len; 
