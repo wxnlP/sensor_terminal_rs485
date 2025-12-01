@@ -18,9 +18,10 @@
 #define  MQTT_SubscribeTopic    "$oc/devices/677388cfbab900244b135588_DATAS/sys/shadow/get/response/#"
 #else
 #define MQTT_URI                "mqtt://u2f8813a.ala.dedicated.huawei.emqxcloud.cn:1883"
+// #define MQTT_URI                "mqtt://192.168.43.4:1883"
 #define MQTT_USERNAME           "soilsensor"
 #define MQTT_PASSWD             "admin123"
-#define MQTT_CLIENT_ID          "frame"
+#define MQTT_CLIENT_ID          "frametest"
 #define MQTT_SERVICE_ID         "soil_sensor"
 #define MQTT_PUBLLISH_TOPPIC    "soil/sensor"
 #define MQTT_SUBSCRIBE_TOPIC    "soil/time"
@@ -82,6 +83,12 @@ static char *MqttSoilSensorPublishPayload(SensorDataFrame_t *frame)
 static int MqttAnalysisSubPyload(const char *json_str, TimeIntervalSetting_t *ti)
 {
     cJSON *root = cJSON_Parse(json_str);
+    if (root == NULL) {
+        // 如果解析失败，则立即返回，不进行任何 cJSON_Delete 或后续操作。
+        // 这能安全地处理接收到的任何非 JSON 或格式错误的 payload。
+        // ESP_LOGE(MQTT_TASK, "Payload is not valid JSON.");
+        return -1;
+    }
     cJSON *value_item = cJSON_GetObjectItemCaseSensitive(root, "time");
     if (!cJSON_IsNumber(value_item)) {
         cJSON_Delete(root);
@@ -115,7 +122,15 @@ static void MqttConnEventHandleTask(void *arg)
     (void)arg;
     g_uploadTimeInterval = DEFAULT_UPLOAD_TIME_INTERVAL;
     EventGroupHandle_t mqtt_conn_event_handle = MqttGetConnEventHandle();
+    while (mqtt_conn_event_handle == NULL) {
+        vTaskDelay(pdMS_TO_TICKS(100));
+        mqtt_conn_event_handle = MqttGetConnEventHandle();
+    }
     QueueHandle_t transceiver_queue_handle = TransceiverGetSensorQueueHandle();
+    while (transceiver_queue_handle == NULL) {
+        vTaskDelay(pdMS_TO_TICKS(100));
+        transceiver_queue_handle = TransceiverGetSensorQueueHandle();
+    }
     SensorDataFrame_t frame;
     while(true) {
         EventBits_t bits = xEventGroupWaitBits(mqtt_conn_event_handle, 
@@ -130,6 +145,7 @@ static void MqttConnEventHandleTask(void *arg)
             while (true)
             {
                 if (xQueueReceive(transceiver_queue_handle, &frame, portMAX_DELAY) == pdTRUE) {
+
                     char *pyload = MqttSoilSensorPublishPayload(&frame);
                     MqttClientPublish(MQTT_PUBLLISH_TOPPIC, pyload, 1);
                     free(pyload);
@@ -153,44 +169,51 @@ static void MqttSubQueueHandleTask(void *arg)
     MqttSubData_t sub_data;
     TimeIntervalSetting_t time_setting;
     QueueHandle_t queue_handle = MqttGetSubQueueHandle();
-    // const char *test = "{ \"time\": 60, \"unit\":\"S\"}";
-    // MqttAnalysisSubPyload(test, &time_setting);
-    // printf("time setting: %d %d %d\n", time_setting.time, time_setting.unit, (time_setting.unit == 'S'));
+    while (queue_handle == NULL) {
+        vTaskDelay(pdMS_TO_TICKS(100));
+        queue_handle = MqttGetSubQueueHandle();
+    }
     while (true)
     {
         if (xQueueReceive(queue_handle, &sub_data, portMAX_DELAY) == pdTRUE) {
-            MqttAnalysisSubPyload(sub_data.data, &time_setting);
-            printf("time setting: %d %d\n", time_setting.time, time_setting.unit);
-            switch (time_setting.unit) {
-                case 'S':
-                    ESP_LOGI(MQTT_LORA, "修改单位S");
-                    g_uploadTimeInterval = time_setting.time * S;
-                    break;
-                case 's':
-                    ESP_LOGI(MQTT_LORA, "修改单位S");
-                    g_uploadTimeInterval = time_setting.time * S;
-                    break;
-                case 'M':
-                    ESP_LOGI(MQTT_LORA, "修改单位M");
-                    g_uploadTimeInterval = time_setting.time * M;
-                    break;
-                case 'm':
-                    ESP_LOGI(MQTT_LORA, "修改单位M");
-                    g_uploadTimeInterval = time_setting.time * M;
-                    break;
-                case 'H':
-                    ESP_LOGI(MQTT_LORA, "修改单位H");
-                    g_uploadTimeInterval = time_setting.time * H;
-                    break;
-                case 'h':
-                    ESP_LOGI(MQTT_LORA, "修改单位H");
-                    g_uploadTimeInterval = time_setting.time * H;
-                    break;
-                default:
-                    ESP_LOGI(MQTT_LORA, "格式错误❌️");
-                    g_uploadTimeInterval = DEFAULT_UPLOAD_TIME_INTERVAL;
-                    break;
+            ESP_LOGI(MQTT_LORA, "Received topic:\n[%.*s]", sub_data.topic_len, sub_data.topic);
+            ESP_LOGI(MQTT_LORA, "data:\n[%.*s]", sub_data.data_len, sub_data.data);
+            
+            int ret = MqttAnalysisSubPyload(sub_data.data, &time_setting);
+            if (ret != -1) {
+                printf("time setting: %d %d\n", time_setting.time, time_setting.unit);
+                switch (time_setting.unit) {
+                    case 'S':
+                        ESP_LOGI(MQTT_LORA, "修改单位S");
+                        g_uploadTimeInterval = time_setting.time * S;
+                        break;
+                    case 's':
+                        ESP_LOGI(MQTT_LORA, "修改单位S");
+                        g_uploadTimeInterval = time_setting.time * S;
+                        break;
+                    case 'M':
+                        ESP_LOGI(MQTT_LORA, "修改单位M");
+                        g_uploadTimeInterval = time_setting.time * M;
+                        break;
+                    case 'm':
+                        ESP_LOGI(MQTT_LORA, "修改单位M");
+                        g_uploadTimeInterval = time_setting.time * M;
+                        break;
+                    case 'H':
+                        ESP_LOGI(MQTT_LORA, "修改单位H");
+                        g_uploadTimeInterval = time_setting.time * H;
+                        break;
+                    case 'h':
+                        ESP_LOGI(MQTT_LORA, "修改单位H");
+                        g_uploadTimeInterval = time_setting.time * H;
+                        break;
+                    default:
+                        ESP_LOGI(MQTT_LORA, "格式错误❌️");
+                        g_uploadTimeInterval = DEFAULT_UPLOAD_TIME_INTERVAL;
+                        break;
+                }
             }
+            
         }
     }
     
@@ -198,6 +221,7 @@ static void MqttSubQueueHandleTask(void *arg)
 
 void MqttLoraInit(void)
 {
+    ESP_LOGI(MQTT_LORA, "%s", MQTT_URI);
     MqttInit(MQTT_URI, MQTT_USERNAME, MQTT_PASSWD, MQTT_CLIENT_ID);
 }
 
