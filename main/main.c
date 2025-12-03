@@ -4,8 +4,12 @@
 #include "freertos/task.h"
 #include "esp_log.h"
 #include "gpio/led.h"
+#ifndef WX_STATION 
 #include "lora/transceiver.h"
 #include "lora/mqtt_lora.h"
+#else
+
+#endif
 #include "tasks/main_tasks.h"
 
 
@@ -17,13 +21,21 @@
 void app_main(void)
 {
     LedInit();
+#ifndef WX_STATION 
     TransceiverInit();
+#else
+
+#endif
     /* New freertos tasks */
-    NewUartEventHandleTask();
+#ifndef WX_STATION 
     NewWifiStaTask();
-    vTaskDelay(pdMS_TO_TICKS(1000));
+    NewUartEventHandleTask();
+    // vTaskDelay(pdMS_TO_TICKS(1000));
     NewMqttConnEventHandleTask();
     NewMqttSubQueueHandleTask();
+#else
+
+#endif
 
     // int value = 0;
     // uint8_t buffer[32] = {0};

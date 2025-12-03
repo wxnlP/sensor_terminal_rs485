@@ -9,3 +9,7 @@ idf_component_register(
          "wifi/wifi_station.c"
          "tasks/main_tasks.c"
     INCLUDE_DIRS ".")
+
+target_compile_definitions(${COMPONENT_LIB} PRIVATE 
+     # WX_STATION
+)

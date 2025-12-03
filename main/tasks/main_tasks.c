@@ -2,7 +2,11 @@
 #include "freertos/task.h"
 #include "wifi/wifi_ap.h"
 #include "wifi/wifi_station.h"
+#ifndef WX_STATION
 #include "lora/mqtt_lora.h"
+#else
+
+#endif
 #include "nvs_flash.h"
 #include "esp_log.h"
 
@@ -21,8 +25,12 @@ static void WifiStaTask(void *arg)
     WifiStaInit();
 
     vTaskDelay(pdMS_TO_TICKS(1000));
-
+    
+#ifndef WX_STATION
     MqttLoraInit();
+#else
+
+#endif
 
     while (true)
     {
