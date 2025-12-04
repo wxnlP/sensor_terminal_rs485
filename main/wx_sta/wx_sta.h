@@ -52,6 +52,7 @@ extern "C" {
 #endif
 
 void WxInit(int baud_rate);
+QueueHandle_t WxGetQueueHandle(void);
 int WxSetAddress(uint8_t old_address, uint8_t new_address);
 int WxSetBaudrate(uint8_t address, Buadrate_t rate);
 int WxWindDataRequest(uint8_t address);

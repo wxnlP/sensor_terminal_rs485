@@ -31,6 +31,11 @@ void WxInit(int baud_rate)
     g_wxStaDataHandle = xQueueCreate(10, sizeof(WxStaDataFrame_t));
 }
 
+QueueHandle_t WxGetQueueHandle(void)
+{
+    return g_wxStaDataHandle;
+}
+
 int WxSetAddress(uint8_t old_address, uint8_t new_address)
 {
     uint8_t frame[8];
