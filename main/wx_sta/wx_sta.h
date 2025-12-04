@@ -4,6 +4,8 @@
 #include "uart/uart.h"
 #include <stdint.h>
 
+#define WX_STA_UART_NUM (2)
+
 typedef struct {
     float temperature;  /* 温度 */
     float humidity;     /* 湿度 */

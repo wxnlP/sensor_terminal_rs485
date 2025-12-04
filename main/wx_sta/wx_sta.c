@@ -1,8 +1,6 @@
 #include "wx_sta.h"
 
 
-#define WX_STA_UART_NUM (2)
-
 static QueueHandle_t g_wxStaDataHandle;
 // static const char *WX_TAG = "wx_station";
 static const uint16_t BAUDRATE[5] = { 0x4800, 0x9600, 0x1920, 0x5760, 0x1152 };

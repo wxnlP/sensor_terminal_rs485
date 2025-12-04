@@ -1,6 +1,7 @@
 #include "wx_app.h"
 #include "wx_sta.h"
 #include "driver/uart.h"
+#include "esp_log.h"
 
 static const char *WX_TAG = "wx_station";
 
@@ -12,7 +13,7 @@ static int WxGenDeviceNumber(uint8_t address, char *device_num, size_t size)
 
 static int WxSensorFrameAnalysis(const uint8_t *frame, WxStaDataFrame_t *out_data, size_t size)
 {
-
+    return 0;
 }
 
 static void WxUartQueueTask(void *arg)
@@ -29,7 +30,7 @@ static void WxUartQueueTask(void *arg)
             switch (event.type) {
                 case UART_DATA:
                     ESP_LOGI(WX_TAG, "UART_DATA Event: RX_DATA, Size: %d", event.size);
-                    UartReceive(LORA_UART_NUM, data, event.size);
+                    UartReceive(WX_STA_UART_NUM, data, event.size);
                     if (WxSensorFrameAnalysis(data, &real_sensor_data, event.size) != -1) {
                         xQueueSend(wx_sta_data_handle, &real_sensor_data, 0);
                         ESP_LOGI(WX_TAG, "Vaild frame.");
