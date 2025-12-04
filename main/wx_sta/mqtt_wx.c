@@ -12,7 +12,7 @@
 #define MQTT_PASSWD     "ad31747e0b97a6ca1287043ca46a3571796f0d20e1056ecabec4f05fc2db545f"
 #define MQTT_CLIENT_ID  "677388cfbab900244b135588_DATAS_0_0_2024123106"
 #define MQTT_DEVICE_ID  "677388cfbab900244b135588_DATAS"
-#define MQTT_SERVICE_ID "soil_sensor"
+#define MQTT_SERVICE_ID "wx_station"
 // HUAWEICLOUDE平台的话题定义
 #define  MQTT_PUBLLISH_TOPPIC      "$oc/devices/677388cfbab900244b135588_DATAS/sys/properties/report"
 #define  MQTT_RequestTopic      "$oc/devices/677388cfbab900244b135588_DATAS/sys/shadow/get/request_id={request_id}"
