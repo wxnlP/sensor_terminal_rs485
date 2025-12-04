@@ -66,7 +66,7 @@ int WxSetBaudrate(uint8_t address, Buadrate_t rate)
     return UartSend(WX_STA_UART_NUM, frame, 8);
 }
 
-int WxWindDataRequest(uint8_t address)
+int WxWindDirDataRequest(uint8_t address)
 {
     uint8_t frame[8];
     frame[0] = address;
@@ -75,6 +75,86 @@ int WxWindDataRequest(uint8_t address)
     frame[3] = 0x00;
     frame[4] = 0x00;
     frame[5] = 0x02;
+    uint16_t crc = ModbusCRC16(frame);
+    frame[6] = (uint8_t)(crc & 0x00FF);
+    frame[7] = (uint8_t)(crc >> 8);
+
+    return UartSend(WX_STA_UART_NUM, frame, 8);
+}
+
+int WxWindSpeedDataRequest(uint8_t address)
+{
+    uint8_t frame[8];
+    frame[0] = address;
+    frame[1] = 0x03;
+    frame[2] = 0x00;
+    frame[3] = 0x00;
+    frame[4] = 0x00;
+    frame[5] = 0x03;
+    uint16_t crc = ModbusCRC16(frame);
+    frame[6] = (uint8_t)(crc & 0x00FF);
+    frame[7] = (uint8_t)(crc >> 8);
+
+    return UartSend(WX_STA_UART_NUM, frame, 8);
+}
+
+int WxSunlightDataRequest(uint8_t address)
+{
+    uint8_t frame[8];
+    frame[0] = address;
+    frame[1] = 0x03;
+    frame[2] = 0x00;
+    frame[3] = 0x00;
+    frame[4] = 0x00;
+    frame[5] = 0x01;
+    uint16_t crc = ModbusCRC16(frame);
+    frame[6] = (uint8_t)(crc & 0x00FF);
+    frame[7] = (uint8_t)(crc >> 8);
+
+    return UartSend(WX_STA_UART_NUM, frame, 8);
+}
+
+int WxRainTimeDataRequest(uint8_t address)
+{
+    uint8_t frame[8];
+    frame[0] = address;
+    frame[1] = 0x03;
+    frame[2] = 0x00;
+    frame[3] = 0x34;
+    frame[4] = 0x00;
+    frame[5] = 0x03;
+    uint16_t crc = ModbusCRC16(frame);
+    frame[6] = (uint8_t)(crc & 0x00FF);
+    frame[7] = (uint8_t)(crc >> 8);
+
+    return UartSend(WX_STA_UART_NUM, frame, 8);
+}
+
+int WxRainDataRequest(uint8_t address)
+{
+    uint8_t frame[8];
+    frame[0] = address;
+    frame[1] = 0x03;
+    frame[2] = 0x00;
+    frame[3] = 0x00;
+    frame[4] = 0x00;
+    frame[5] = 0x0A;
+    uint16_t crc = ModbusCRC16(frame);
+    frame[6] = (uint8_t)(crc & 0x00FF);
+    frame[7] = (uint8_t)(crc >> 8);
+
+    return UartSend(WX_STA_UART_NUM, frame, 8);
+}
+
+int WxRainDataResetRequest(uint8_t address)
+{
+    uint8_t frame[8];
+    frame[0] = address;
+    frame[1] = 0x06;
+    frame[2] = 0x00;
+    frame[3] = 0x37;
+    frame[4] = 0x00;
+    frame[5] = 0x03;
     uint16_t crc = ModbusCRC16(frame);
     frame[6] = (uint8_t)(crc & 0x00FF);
     frame[7] = (uint8_t)(crc >> 8);

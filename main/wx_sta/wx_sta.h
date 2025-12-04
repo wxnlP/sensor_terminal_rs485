@@ -5,12 +5,31 @@
 #include <stdint.h>
 
 #define WX_STA_UART_NUM (2)
+#define DEVICE_NUMBER_SIZE (15)
+
+// 定义标志位宏，用于设置和检查
+#define FLAG_TH (1 << 0)
+#define FLAG_WS (1 << 1)
+#define FLAG_WD (1 << 2)
+#define FLAG_SL (1 << 3)
+#define FLAG_RG (1 << 4)
+
+#define ALL_SENSORS_RECEIVED (FLAG_TH | FLAG_WS | FLAG_WD | FLAG_SL | FLAG_RG)
 
 typedef struct {
-    float temperature;  /* 温度 */
-    float humidity;     /* 湿度 */
-    float wind_dir;     /* 风向方位 */
-    uint8_t wind_angle; /* 风向方位角度 */
+    char index[DEVICE_NUMBER_SIZE];
+    float temperature;      /* 温度 */
+    float humidity;         /* 湿度 */
+    uint16_t wind_dir;      /* 风向方位 */
+    float wind_angle;       /* 风向方位角度 */
+    uint16_t wind_level;    /* 风级 */
+    float wind_speed1;      /* 风速m/s */
+    float wind_speed2;      /* 风速km/h */
+    uint16_t sunlight;      /* 光照强度 */
+    float rain_today;       /* 今日降雨量 */
+    float rain_yest;        /* 昨日降雨量 */
+    float rain_total;       /* 总降雨量 */
+    uint8_t flag;
 } WxStaDataFrame_t;
 
 typedef enum {
@@ -57,12 +76,17 @@ void WxInit(int baud_rate);
 QueueHandle_t WxGetQueueHandle(void);
 int WxSetAddress(uint8_t old_address, uint8_t new_address);
 int WxSetBaudrate(uint8_t address, Buadrate_t rate);
-int WxWindDataRequest(uint8_t address);
+int WxWindDirDataRequest(uint8_t address);
+int WxWindSpeedDataRequest(uint8_t address);
 int WxWindHeatEnable(uint8_t address, AutoHeat_t auto_heat);
 int WxWindSetHeatStartTh(uint8_t address, int temp);
 int WxWindSetHeatStopTh(uint8_t address, int temp);
 int WxWindHeatThRequest(uint8_t address);
 int WxTHDataRequest(uint8_t address);
+int WxSunlightDataRequest(uint8_t address);
+int WxRainTimeDataRequest(uint8_t address);
+int WxRainDataRequest(uint8_t address);
+int WxRainDataResetRequest(uint8_t address);
 
 #ifdef __cplusplus
 }
