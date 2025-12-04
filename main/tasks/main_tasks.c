@@ -5,7 +5,7 @@
 #ifndef WX_STATION
 #include "lora/mqtt_lora.h"
 #else
-
+#include "wx_sta/mqtt_wx.h"
 #endif
 #include "nvs_flash.h"
 #include "esp_log.h"
@@ -29,7 +29,7 @@ static void WifiStaTask(void *arg)
 #ifndef WX_STATION
     MqttLoraInit();
 #else
-
+    MqttWxInit();
 #endif
 
     while (true)

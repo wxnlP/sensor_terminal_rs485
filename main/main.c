@@ -8,7 +8,9 @@
 #include "lora/transceiver.h"
 #include "lora/mqtt_lora.h"
 #else
-
+#include "wx_sta/wx_sta.h"
+#include "wx_sta/wx_app.h"
+#include "wx_sta/mqtt_wx.h"
 #endif
 #include "tasks/main_tasks.h"
 
@@ -24,17 +26,19 @@ void app_main(void)
 #ifndef WX_STATION 
     TransceiverInit();
 #else
-
+    WxInit(9600);
 #endif
     /* New freertos tasks */
-#ifndef WX_STATION 
     NewWifiStaTask();
+#ifndef WX_STATION  
     NewUartEventHandleTask();
     // vTaskDelay(pdMS_TO_TICKS(1000));
     NewMqttConnEventHandleTask();
     NewMqttSubQueueHandleTask();
 #else
-
+    NewWxUartEventHandleTask();
+    NewWxMqttConnEventHandleTask();
+    NewWxMqttSubQueueHandleTask();
 #endif
 
     // int value = 0;
@@ -43,7 +47,7 @@ void app_main(void)
    
     while(true)
     {
-        #if UART_SEND_DEMO == 1
+#if UART_SEND_DEMO == 1
         snprintf((char *)buffer, sizeof(buffer),"[INFO] AT+LOCK=%d\r\n", value);
         value++;
         UartSend(2, buffer, sizeof(buffer));
@@ -54,23 +58,41 @@ void app_main(void)
         LedCtrl(1);
         UartSendString(2, "OFF\r\n");
         vTaskDelay(pdMS_TO_TICKS(1000));        
-        #endif
+#endif
 
-        #if UART_RECEIVE_DEMO == 1
+#if UART_RECEIVE_DEMO == 1
         if (UartRevString(2, rev_buffer, 6) > 0) {
             ESP_LOGI(MainTag, "Rec:%s", rev_buffer);
             UartSendString(2, rev_buffer);
         }
         vTaskDelay(pdMS_TO_TICKS(200));
-        #endif
+#endif
 
-        #if UART_RECEIVE_DEMO != 1 && UART_SEND_DEMO != 1
+#if UART_RECEIVE_DEMO != 1 && UART_SEND_DEMO != 1
         LedCtrl(0);
         vTaskDelay(pdMS_TO_TICKS(5000));
         LedCtrl(1);
         vTaskDelay(pdMS_TO_TICKS(5000));
+#ifndef WX_STATION
         TransceiverSensorDataRequest(1);
+#else
+        // 温湿度
+        WxTHDataRequest(0x01);
+        vTaskDelay(pdMS_TO_TICKS(1000));
+        // 风速
+        WxWindSpeedDataRequest(0x02);
+        vTaskDelay(pdMS_TO_TICKS(1000));
+        // 风向
+        WxWindDirDataRequest(0x03);
+        vTaskDelay(pdMS_TO_TICKS(1000));
+        // 光照强度
+        WxSunlightDataRequest(0x04);
+        vTaskDelay(pdMS_TO_TICKS(1000));
+        // 降雨量
+        WxRainDataRequest(0x05);
+        vTaskDelay(pdMS_TO_TICKS(1000));
+#endif
 
-        #endif
+#endif
     }
 }

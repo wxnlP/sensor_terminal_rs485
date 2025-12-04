@@ -8,8 +8,11 @@ idf_component_register(
          "wifi/wifi_ap.c"
          "wifi/wifi_station.c"
          "tasks/main_tasks.c"
+         "wx_sta/wx_sta.c"
+         "wx_sta/wx_app.c"
+         "wx_sta/mqtt_wx.c"
     INCLUDE_DIRS ".")
 
 target_compile_definitions(${COMPONENT_LIB} PRIVATE 
-     # WX_STATION
+     WX_STATION
 )
