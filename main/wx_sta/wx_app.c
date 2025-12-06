@@ -12,6 +12,7 @@ static WxStaDataFrame_t g_last_wx_frame;
 static int WxSensorFrameAnalysis(const uint8_t *frame, WxStaDataFrame_t *out_data, size_t size)
 {
     int index = 0;
+    *out_data = g_last_wx_frame;
     for (int i = 0; i < size; i++) {
         if (frame[i]) {
             index = i;
