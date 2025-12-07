@@ -9,6 +9,48 @@ static const char *WX_TAG = "wx_station";
 static WxStaDataFrame_t g_last_wx_frame;
 
 
+/**
+ * @brief 打印 WxStaDataFrame_t 结构体中的所有成员信息
+ *
+ * @param frame 指向要打印的 WxStaDataFrame_t 结构体指针
+ */
+void print_WxStaDataFrame(const WxStaDataFrame_t *frame)
+{
+    if (frame == NULL) {
+        printf("Error: Frame pointer is NULL.\n");
+        return;
+    }
+
+    printf("\n--- Weather Station Data Frame ---\n");
+    
+    // 基础信息
+    printf("Index (Device ID):  %s\n", frame->index);
+    printf("Flag (Status Byte): 0x%02X (%u)\n", frame->flag, frame->flag);
+
+    // 气象数据
+    printf("\n--- Environmental Metrics ---\n");
+    printf("Temperature:        %.2f C\n", frame->temperature);
+    printf("Humidity:           %.2f %%\n", frame->humidity);
+    printf("Sunlight (Lux):     %u\n", frame->sunlight);
+
+    // 风速风向
+    printf("\n--- Wind Data ---\n");
+    printf("Wind Direction (ID):%u\n", frame->wind_dir);
+    printf("Wind Angle (Degree):%.2f deg\n", frame->wind_angle);
+    printf("Wind Level:         %u\n", frame->wind_level);
+    printf("Wind Speed (m/s):   %.2f m/s\n", frame->wind_speed1);
+    printf("Wind Speed (km/h):  %.2f km/h\n", frame->wind_speed2);
+
+    // 降雨量
+    printf("\n--- Rain Data ---\n");
+    printf("Rainfall Today:     %.2f mm\n", frame->rain_today);
+    printf("Rainfall Yesterday: %.2f mm\n", frame->rain_yest);
+    printf("Rainfall Total:     %.2f mm\n", frame->rain_total);
+
+    printf("----------------------------------\n");
+}
+
+
 static int WxSensorFrameAnalysis(const uint8_t *frame, WxStaDataFrame_t *out_data, size_t size)
 {
     int index = 0;
@@ -129,12 +171,14 @@ static void WxUartQueueTask(void *arg)
                     UartReceive(WX_STA_UART_NUM, data, event.size);
                     if (WxSensorFrameAnalysis(data, &real_sensor_data, event.size) != -1) {
                         ESP_LOGI(WX_TAG, "Vaild frame.");
-                        if (real_sensor_data.flag == ALL_SENSORS_RECEIVED && times < TIMEOUT_DEFAULT) {
+                        print_WxStaDataFrame(&real_sensor_data);
+                        if (real_sensor_data.flag == ALL_SENSORS_RECEIVED || times > TIMEOUT_DEFAULT) {
                             xQueueSend(wx_sta_data_handle, &real_sensor_data, 0);
                             times = 0;
                         } else {
                             times++;
-                        } 
+                        }
+                        ESP_LOGI(WX_TAG, "frame times: %d", times);
                     }
                     for (int i = 0; i < event.size; i++) {
                         printf("%X ", data[i]);

@@ -53,6 +53,7 @@ static char *MqttWxStaPublishPayload(WxStaDataFrame_t *frame)
     cJSON *props = cJSON_CreateObject();
 
     cJSON_AddStringToObject(props, "index", frame->index);
+    cJSON_AddNumberToObject(props, "battery", 11.8);
     cJSON_AddNumberToObject(props, "temperature", frame->temperature);
     cJSON_AddNumberToObject(props, "humidity", frame->humidity);
     cJSON_AddNumberToObject(props, "wind_dir", frame->wind_dir);
@@ -63,7 +64,7 @@ static char *MqttWxStaPublishPayload(WxStaDataFrame_t *frame)
     cJSON_AddNumberToObject(props, "rain_today", frame->rain_today);
     cJSON_AddNumberToObject(props, "rain_yest", frame->rain_yest);
     cJSON_AddNumberToObject(props, "rain_total", frame->rain_total);
-    cJSON_AddNumberToObject(props, "status", frame->flag);
+    cJSON_AddNumberToObject(props, "flag", frame->flag);
 
     cJSON_AddItemToObject(upload, "properties", props);
 
@@ -158,7 +159,7 @@ static void MqttConnEventHandleTask(void *arg)
                 }
                 ESP_LOGI(MQTT_WX, "Time interval: %llu", g_uploadTimeInterval);
                 vTaskDelay(pdMS_TO_TICKS(g_uploadTimeInterval));
-            }
+            }      
         }
     }
 }

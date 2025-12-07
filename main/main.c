@@ -18,7 +18,7 @@
 #define UART_SEND_DEMO      (0)
 #define UART_RECEIVE_DEMO   (0)
 
-// static const char *MainTag = "main";
+static const char *MainTag = "main";
 
 void app_main(void)
 {
@@ -26,6 +26,7 @@ void app_main(void)
 #ifndef WX_STATION 
     TransceiverInit();
 #else
+    ESP_LOGI(MainTag, "##########\nWX Station\n##########");
     WxInit(9600);
 #endif
     /* New freertos tasks */
@@ -78,18 +79,23 @@ void app_main(void)
 #else
         // 温湿度
         WxTHDataRequest(0x01);
+        ESP_LOGI(MainTag, "温湿度");
         vTaskDelay(pdMS_TO_TICKS(1000));
         // 风速
         WxWindSpeedDataRequest(0x02);
+        ESP_LOGI(MainTag, "风速");
         vTaskDelay(pdMS_TO_TICKS(1000));
         // 风向
         WxWindDirDataRequest(0x03);
+        ESP_LOGI(MainTag, "风向");
         vTaskDelay(pdMS_TO_TICKS(1000));
         // 光照强度
         WxSunlightDataRequest(0x04);
+        ESP_LOGI(MainTag, "光照");
         vTaskDelay(pdMS_TO_TICKS(1000));
         // 降雨量
         WxRainDataRequest(0x05);
+        ESP_LOGI(MainTag, "降雨量");
         vTaskDelay(pdMS_TO_TICKS(1000));
 #endif
 
