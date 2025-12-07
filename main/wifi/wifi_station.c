@@ -9,7 +9,7 @@
 
 
 /* ------------------------------------ 宏定义 ------------------------------------- */
-#define WIFI_SSID                   "pi"
+#define WIFI_SSID                   "Mate70"
 #define WIFI_PASSWORD               "123456789"
 #define WIFI_CONNECT_MAX_TIMES      10
 #define WIFI_CONNECTED_EVENT_BIT    (1<<0)

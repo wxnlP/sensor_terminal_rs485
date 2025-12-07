@@ -13,9 +13,9 @@
 #define MQTT_DEVICE_ID  "677388cfbab900244b135588_DATAS"
 #define MQTT_SERVICE_ID "soil_sensor"
 // HUAWEICLOUDE平台的话题定义
-#define  MQTT_PublishTopic      "$oc/devices/677388cfbab900244b135588_DATAS/sys/properties/report"
+#define  MQTT_PUBLLISH_TOPPIC      "$oc/devices/677388cfbab900244b135588_DATAS/sys/properties/report"
 #define  MQTT_RequestTopic      "$oc/devices/677388cfbab900244b135588_DATAS/sys/shadow/get/request_id={request_id}"
-#define  MQTT_SubscribeTopic    "$oc/devices/677388cfbab900244b135588_DATAS/sys/shadow/get/response/#"
+#define  MQTT_SUBSCRIBE_TOPIC    "$oc/devices/677388cfbab900244b135588_DATAS/sys/shadow/get/response/#"
 #else
 #define MQTT_URI                "mqtt://u2f8813a.ala.dedicated.huawei.emqxcloud.cn:1883"
 // #define MQTT_URI                "mqtt://192.168.43.4:1883"
