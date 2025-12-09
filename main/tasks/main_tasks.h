@@ -9,6 +9,9 @@ extern "C" {
 
 void NewWifiStaTask(void);
 void NewWifiApTask(void);
+#ifdef WX_STATION
+void NewWxScreenTask(void);
+#endif
 
 #ifdef __c_plusplus
 }
