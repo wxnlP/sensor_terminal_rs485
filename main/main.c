@@ -40,6 +40,7 @@ void app_main(void)
     NewWxUartEventHandleTask();
     NewWxMqttConnEventHandleTask();
     NewWxMqttSubQueueHandleTask();
+    NewWxScreenTask();
 #endif
 
     // int value = 0;

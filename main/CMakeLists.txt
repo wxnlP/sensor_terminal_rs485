@@ -11,6 +11,7 @@ idf_component_register(
          "wx_sta/wx_sta.c"
          "wx_sta/wx_app.c"
          "wx_sta/mqtt_wx.c"
+         "screen/screen.c"
     INCLUDE_DIRS ".")
 
 target_compile_definitions(${COMPONENT_LIB} PRIVATE 
