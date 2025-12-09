@@ -1,13 +1,14 @@
 #include "wx_app.h"
-#include "wx_sta.h"
 #include "driver/uart.h"
 #include "esp_log.h"
+
+
 
 #define TIMEOUT_DEFAULT (20)
 
 static const char *WX_TAG = "wx_station";
 static WxStaDataFrame_t g_last_wx_frame;
-
+static EventGroupHandle_t g_wxScreenEventHandle;
 
 /**
  * @brief 打印 WxStaDataFrame_t 结构体中的所有成员信息
@@ -54,12 +55,16 @@ void print_WxStaDataFrame(const WxStaDataFrame_t *frame)
 static int WxSensorFrameAnalysis(const uint8_t *frame, WxStaDataFrame_t *out_data, size_t size)
 {
     int index = 0;
-    *out_data = g_last_wx_frame;
+
     for (int i = 0; i < size; i++) {
         if (frame[i]) {
             index = i;
             break;
         }
+    }
+
+    if (frame[index] == SENSOR_SCREEN) {
+        return -1;
     }
 
     // request
@@ -142,7 +147,7 @@ static int WxSensorFrameAnalysis(const uint8_t *frame, WxStaDataFrame_t *out_dat
             break;
         
         default:
-            ESP_LOGI(WX_TAG, "Invaild Frame.");
+            // ESP_LOGI(WX_TAG, "Invaild Frame.");
             return -1;
             break;
         }
@@ -167,14 +172,17 @@ static void WxUartQueueTask(void *arg)
         if (xQueueReceive(queue_handle, &event, portMAX_DELAY) == pdTRUE) {
             switch (event.type) {
                 case UART_DATA:
-                    ESP_LOGI(WX_TAG, "UART_DATA Event: RX_DATA, Size: %d", event.size);
+                    // ESP_LOGI(WX_TAG, "UART_DATA Event: RX_DATA, Size: %d", event.size);
                     UartReceive(WX_STA_UART_NUM, data, event.size);
                     if (WxSensorFrameAnalysis(data, &real_sensor_data, event.size) != -1) {
-                        ESP_LOGI(WX_TAG, "Vaild frame.");
-                        print_WxStaDataFrame(&real_sensor_data);
+                        // ESP_LOGI(WX_TAG, "Vaild frame.");
                         if (real_sensor_data.flag == ALL_SENSORS_RECEIVED || times > TIMEOUT_DEFAULT) {
+                            print_WxStaDataFrame(&real_sensor_data);
+                            vTaskDelay(pdMS_TO_TICKS(500));
                             xQueueSend(wx_sta_data_handle, &real_sensor_data, 0);
+                            xEventGroupSetBits(g_wxScreenEventHandle, WX_SCREEN_EVENT);
                             times = 0;
+                            real_sensor_data.flag = 0;
                         } else {
                             times++;
                         }
@@ -199,6 +207,19 @@ static void WxUartQueueTask(void *arg)
 
 void NewWxUartEventHandleTask(void)
 {
+    // 创建一个事件组
+    g_wxScreenEventHandle = xEventGroupCreate();
     xTaskCreate(WxUartQueueTask, "uart_task", 1024*5, NULL, 24, NULL);
+}
+
+// 省事机构（快速完成功能需要，但不推荐使用，数据更新会落后一个帧）
+void GetUartLastWxFrame(WxStaDataFrame_t *last_frame)
+{
+    *last_frame = g_last_wx_frame;
+}
+
+EventGroupHandle_t GetWxScreenEventHandle(void)
+{
+    return g_wxScreenEventHandle;
 }
 
