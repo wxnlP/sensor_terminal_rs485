@@ -26,14 +26,12 @@ void app_main(void)
 #ifndef WX_STATION 
     TransceiverInit();
 #else
-    ESP_LOGI(MainTag, "##########\nWX Station\n##########");
     WxInit(9600);
 #endif
     /* New freertos tasks */
     NewWifiStaTask();
 #ifndef WX_STATION  
     NewUartEventHandleTask();
-    // vTaskDelay(pdMS_TO_TICKS(1000));
     NewMqttConnEventHandleTask();
     NewMqttSubQueueHandleTask();
 #else
@@ -43,40 +41,33 @@ void app_main(void)
     NewWxScreenTask();
 #endif
 
-    // int value = 0;
-    // uint8_t buffer[32] = {0};
-    // char rev_buffer[16] = {0};
-   
+    EventGroupHandle_t sensor_complete_handle =  TransceiverGetCompleteHandle();
     while(true)
     {
-#if UART_SEND_DEMO == 1
-        snprintf((char *)buffer, sizeof(buffer),"[INFO] AT+LOCK=%d\r\n", value);
-        value++;
-        UartSend(2, buffer, sizeof(buffer));
-        vTaskDelay(pdMS_TO_TICKS(200));
+        int delay_time = GetTimeInterval();
         LedCtrl(0);
-        UartSendString(2, "ON\r\n");
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        vTaskDelay(pdMS_TO_TICKS(delay_time/2));
         LedCtrl(1);
-        UartSendString(2, "OFF\r\n");
-        vTaskDelay(pdMS_TO_TICKS(1000));        
-#endif
-
-#if UART_RECEIVE_DEMO == 1
-        if (UartRevString(2, rev_buffer, 6) > 0) {
-            ESP_LOGI(MainTag, "Rec:%s", rev_buffer);
-            UartSendString(2, rev_buffer);
-        }
-        vTaskDelay(pdMS_TO_TICKS(200));
-#endif
-
-#if UART_RECEIVE_DEMO != 1 && UART_SEND_DEMO != 1
-        LedCtrl(0);
-        vTaskDelay(pdMS_TO_TICKS(5000));
-        LedCtrl(1);
-        vTaskDelay(pdMS_TO_TICKS(5000));
+        vTaskDelay(pdMS_TO_TICKS(delay_time/2));
 #ifndef WX_STATION
-        TransceiverSensorDataRequest(1);
+        for (int i = 1; i < 33; i++) {
+            TransceiverSensorDataRequest(TRANSCEIVER_SOIL, i);
+            xEventGroupWaitBits(sensor_complete_handle, 
+                                SENSOR_COMPLETE_EVENT_BIT, 
+                                pdTRUE, 
+                                pdTRUE, 
+                                pdMS_TO_TICKS(1000));
+        }
+        for (int j = 1; j < 33; j++) {
+            TransceiverSensorDataRequest(TRANSCEIVER_321, j);
+            xEventGroupWaitBits(sensor_complete_handle, 
+                                SENSOR_COMPLETE_EVENT_BIT, 
+                                pdTRUE, 
+                                pdTRUE, 
+                                pdMS_TO_TICKS(1000));
+        }
+        
+        
 #else
         // 温湿度
         WxTHDataRequest(0x01);
@@ -100,6 +91,5 @@ void app_main(void)
         vTaskDelay(pdMS_TO_TICKS(1000));
 #endif
 
-#endif
     }
 }
