@@ -35,7 +35,7 @@
 #define H (60 * M)
 #define DEFAULT_UPLOAD_TIME_INTERVAL (10 * S)
 
-static uint64_t g_uploadTimeInterval;
+static int g_uploadTimeInterval;
 static const char *MQTT_WX = "mqtt_wx";
 
 
@@ -222,6 +222,11 @@ void MqttWxInit(void)
 {
     ESP_LOGI(MQTT_WX, "%s", MQTT_URI);
     MqttInit(MQTT_URI, MQTT_USERNAME, MQTT_PASSWD, MQTT_CLIENT_ID);
+}
+
+int GetTimeInterval(void)
+{
+    return g_uploadTimeInterval;
 }
 
 void NewWxMqttConnEventHandleTask(void)

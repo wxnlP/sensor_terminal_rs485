@@ -34,6 +34,7 @@ void app_main(void)
     NewUartEventHandleTask();
     NewMqttConnEventHandleTask();
     NewMqttSubQueueHandleTask();
+    EventGroupHandle_t sensor_complete_handle =  TransceiverGetCompleteHandle();
 #else
     NewWxUartEventHandleTask();
     NewWxMqttConnEventHandleTask();
@@ -41,7 +42,6 @@ void app_main(void)
     NewWxScreenTask();
 #endif
 
-    EventGroupHandle_t sensor_complete_handle =  TransceiverGetCompleteHandle();
     while(true)
     {
         int delay_time = GetTimeInterval();
@@ -72,23 +72,23 @@ void app_main(void)
         // 温湿度
         WxTHDataRequest(0x01);
         ESP_LOGI(MainTag, "温湿度");
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        vTaskDelay(pdMS_TO_TICKS(200));
         // 风速
         WxWindSpeedDataRequest(0x02);
         ESP_LOGI(MainTag, "风速");
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        vTaskDelay(pdMS_TO_TICKS(200));
         // 风向
         WxWindDirDataRequest(0x03);
         ESP_LOGI(MainTag, "风向");
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        vTaskDelay(pdMS_TO_TICKS(200));
         // 光照强度
         WxSunlightDataRequest(0x04);
         ESP_LOGI(MainTag, "光照");
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        vTaskDelay(pdMS_TO_TICKS(200));
         // 降雨量
         WxRainDataRequest(0x05);
         ESP_LOGI(MainTag, "降雨量");
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        vTaskDelay(pdMS_TO_TICKS(200));
 #endif
 
     }

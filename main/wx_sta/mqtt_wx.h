@@ -12,6 +12,7 @@ extern "C" {
 #endif
 
 void MqttWxInit(void);
+int GetTimeInterval(void);
 void NewWxMqttConnEventHandleTask(void);
 void NewWxMqttSubQueueHandleTask(void);
 
