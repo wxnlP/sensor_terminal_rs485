@@ -6,6 +6,8 @@
 #define LORA_UART_NUM (2)
 
 static QueueHandle_t g_sensorDataHandle;
+static EventGroupHandle_t g_sensor_complete_handle;
+static SensorCounter_t g_sensor_count = {0};
 static const char *LORA_TAG = "transceiver";
 static const char *TAG = "DEBUG";
 
@@ -18,8 +20,8 @@ static void print_sensor_data(const SensorDataFrame_t *data)
 
     // --- 打印基本信息和状态 ---
     ESP_LOGI(TAG, "================ Sensor Data Report ================");
-    ESP_LOGI(TAG, "Sensor ID: %u, Battery: %u%%", 
-             data->index, data->battery);
+    ESP_LOGI(TAG, "Sensor ID: %u, Battery: %u%%, Flag: %d", 
+             data->index, data->battery, data->flag);
     
     ESP_LOGI(TAG, "Signal: %d dBm, Valid Count: %u, Signal Counter: %u", 
              data->signal, data->vaild_count, data->signal_count);
@@ -29,8 +31,8 @@ static void print_sensor_data(const SensorDataFrame_t *data)
              data->suc_signal, data->fail_signal);
 
     // --- 打印测量值 (使用 %.2f 格式化浮点数，保留两位小数) ---
-    ESP_LOGI(TAG, "Temperature: %.2f C, Humidity: %.2f %%", 
-             (double)data->temperature, (double)data->humidity);
+    ESP_LOGI(TAG, "T_soil: %.2f C, H_soil: %.2f %%", 
+             (double)data->t_soil, (double)data->t_soil);
 
     ESP_LOGI(TAG, "EC: %.2f, PH: %.2f", 
              (double)data->ec, (double)data->ph);
@@ -38,15 +40,12 @@ static void print_sensor_data(const SensorDataFrame_t *data)
     // --- 打印 NPK 值 ---
     ESP_LOGI(TAG, "NPK (N/P/K): %u / %u / %u", 
              data->n, data->p, data->k);
+    ESP_LOGI(TAG, "T_321: %.2f C, H_321: %.2f %%, Sunlight: %d", 
+             (double)data->t_321, (double)data->h_321, data->sunlight);
     
     ESP_LOGI(TAG, "==================================================");
 }
 
-static int TransceiverGenerateDeviceNumber(uint8_t address, char *device_num, size_t size)
-{
-    const char *prefix = "ss20251130";
-    return snprintf(device_num, size, "%s%04d", prefix, address);
-}
 
 static int TransceiverSensorFrameAnalysis(const uint8_t *frame, SensorDataFrame_t *out_data, size_t size)
 {
@@ -58,27 +57,41 @@ static int TransceiverSensorFrameAnalysis(const uint8_t *frame, SensorDataFrame_
         }
     }
 
-    // 检验土壤传感器的字节数
-    if (size - index != 37) {
+    if (frame[index+2] != 0x20) {
         return -1;
     }
-    
-    TransceiverGenerateDeviceNumber(frame[index], out_data->index, 15);
-    out_data->battery = frame[index + 3];
-    out_data->signal = -(frame[index + 4] / 2);
-    out_data->suc_signal = (frame[index + 5] << 8) | frame[index + 6];
-    out_data->fail_signal = (frame[index + 7] << 8) | frame[index + 8];
-    out_data->signal_count = frame[index + 9];
-    out_data->vaild_count = frame[index + 10];
-    out_data->temperature = ((frame[index + 11] << 8) | frame[index + 12]) / 10.0f - 30.0f;
-    out_data->humidity = ((frame[index + 13] << 8) | frame[index + 14]) / 10.0f;
-    out_data->ec = (frame[index + 15] << 8) | frame[index + 16];
-    out_data->ph = ((frame[index + 17] << 8) | frame[index + 18]) / 10.0f;
-    out_data->n = (frame[index + 19] << 8) | frame[index + 20];
-    out_data->p = (frame[index + 21] << 8) | frame[index + 22];
-    out_data->k = (frame[index + 23] << 8) | frame[index + 24];
+
+    if (frame[index+3] == 0x00) {
+        return -1;
+    }
+
+    if (frame[index] == TRANSCEIVER_SOIL) {
+        /* 土壤传感器 */
+        out_data->index = g_sensor_count.soil_count;
+        out_data->battery = frame[index + 3];
+        out_data->signal = -(frame[index + 4] / 2);
+        out_data->suc_signal = (frame[index + 5] << 8) | frame[index + 6];
+        out_data->fail_signal = (frame[index + 7] << 8) | frame[index + 8];
+        out_data->signal_count = frame[index + 9];
+        out_data->vaild_count = frame[index + 10];
+        out_data->t_soil = ((frame[index + 11] << 8) | frame[index + 12]) / 10.0f - 30.0f;
+        out_data->h_soil = ((frame[index + 13] << 8) | frame[index + 14]) / 10.0f;
+        out_data->ec = (frame[index + 15] << 8) | frame[index + 16];
+        out_data->ph = ((frame[index + 17] << 8) | frame[index + 18]) / 10.0f;
+        out_data->n = (frame[index + 19] << 8) | frame[index + 20];
+        out_data->p = (frame[index + 21] << 8) | frame[index + 22];
+        out_data->k = (frame[index + 23] << 8) | frame[index + 24];
+        out_data->flag = (1 << 0);
+    } else if (frame[index] == TRANSCEIVER_321) {
+        /* 三合一传感器 */
+        out_data->index = g_sensor_count.s321_count;
+        out_data->battery = frame[index + 3];
+        out_data->t_321 = ((frame[index + 11] << 8) | frame[index + 12]) / 10.0f - 40.0f;
+        out_data->h_321 = ((frame[index + 13] << 8) | frame[index + 14]) / 10.0f;
+        out_data->sunlight = ((frame[index + 15] << 8) | frame[index + 16]) * 4;
+        out_data->flag = (1 << 1);
+    }
     return 0;
-    
 }
 
 static void Uart2QueueTask(void *arg)
@@ -95,11 +108,14 @@ static void Uart2QueueTask(void *arg)
                 case UART_DATA:
                     ESP_LOGI(LORA_TAG, "UART_DATA Event: RX_DATA, Size: %d", event.size);
                     UartReceive(LORA_UART_NUM, data, event.size);
-                    if (TransceiverSensorFrameAnalysis(data, &real_sensor_data, event.size) != -1) {
+                    int ret = TransceiverSensorFrameAnalysis(data, &real_sensor_data, event.size);
+                    if ( ret != -1) {
                         xQueueSend(g_sensorDataHandle, &real_sensor_data, 0);
-                        ESP_LOGI(LORA_TAG, "Vaild frame.");
                         print_sensor_data(&real_sensor_data);
+                        memset(&real_sensor_data, 0, sizeof(real_sensor_data));
                     }
+                    // 发送标志位，收到数据并处理完毕
+                    xEventGroupSetBits(g_sensor_complete_handle, SENSOR_COMPLETE_EVENT_BIT);
                     for (int i = 0; i < event.size; i++) {
                         printf("%X ", data[i]);
                     }
@@ -144,7 +160,8 @@ void TransceiverInit(void)
 {
     UartInit(2, 115200);
     RS485Init(2);
-    g_sensorDataHandle = xQueueCreate(10, sizeof(SensorDataFrame_t));
+    g_sensorDataHandle = xQueueCreate(40, sizeof(SensorDataFrame_t));
+    g_sensor_complete_handle = xEventGroupCreate();
 }
 
 QueueHandle_t TransceiverGetSensorQueueHandle(void)
@@ -152,10 +169,21 @@ QueueHandle_t TransceiverGetSensorQueueHandle(void)
     return g_sensorDataHandle;
 }
 
-int TransceiverSensorDataRequest(uint8_t address)
+EventGroupHandle_t TransceiverGetCompleteHandle(void)
 {
-    uint16_t s_address = 0x10 * address;
-    uint8_t frame[8] = { address, 0x03,  (uint8_t)s_address >> 8, (uint8_t)s_address,
+    return g_sensor_complete_handle;
+}
+
+int TransceiverSensorDataRequest(uint8_t address, uint8_t sensor_num)
+{
+    if (address == 0x01) {
+        g_sensor_count.soil_count = sensor_num;
+    } else if (address == 0xCD) {
+        g_sensor_count.s321_count = sensor_num;
+    }
+    uint16_t s_address = 0x10 * sensor_num;
+    // ESP_LOGW(TAG, "%d", s_address);
+    uint8_t frame[8] = { address, 0x03,  (uint8_t)(s_address >> 8), (uint8_t)s_address,
                          0x00, 0x10, 0, 0};
     uint16_t crc = ModbusCRC16(frame);
     frame[6] = (uint8_t)(crc & 0x00FF);

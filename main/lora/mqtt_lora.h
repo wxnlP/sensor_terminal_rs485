@@ -12,6 +12,7 @@ extern "C" {
 #endif
 
 void MqttLoraInit(void);
+int GetTimeInterval(void);
 void NewMqttConnEventHandleTask(void);
 void NewMqttSubQueueHandleTask(void);
 
