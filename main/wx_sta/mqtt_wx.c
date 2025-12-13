@@ -22,11 +22,11 @@
 
 #define MQTT_URI                "mqtt://u2f8813a.ala.dedicated.huawei.emqxcloud.cn:1883"
 // #define MQTT_URI                "mqtt://192.168.43.4:1883"
-#define MQTT_USERNAME           "soilsensor"
-#define MQTT_PASSWD             "admin123"
-#define MQTT_CLIENT_ID          "frametest"
+#define MQTT_USERNAME           "weather"
+#define MQTT_PASSWD             "weather123"
+#define MQTT_CLIENT_ID          "weather"
 #define MQTT_SERVICE_ID         "wx_station"
-#define MQTT_PUBLLISH_TOPPIC    "sensor/wx_sta"
+#define MQTT_PUBLLISH_TOPPIC    "weather/sensor"
 #define MQTT_SUBSCRIBE_TOPIC    "wx_sta/time"
 #endif
 

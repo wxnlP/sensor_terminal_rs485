@@ -22,14 +22,14 @@
 #else
 #define MQTT_URI                "mqtt://u2f8813a.ala.dedicated.huawei.emqxcloud.cn:1883"
 // #define MQTT_URI                "mqtt://192.168.43.4:1883"
-#define MQTT_USERNAME           "soilsensor"
-#define MQTT_PASSWD             "admin123"
-#define MQTT_CLIENT_ID          "frametest"
+#define MQTT_USERNAME           "soil3"
+#define MQTT_PASSWD             "soil3123"
+#define MQTT_CLIENT_ID          "soil3"
 #define MQTT_SERVICE_ID_SOIL    "soil_sensor"
 #define MQTT_SERVICE_ID_321     "321_sensor"
 #define MQTT_PUBLLISH_TOPIC_SOIL   "soil/sensor"
-#define MQTT_PUBLLISH_TOPIC_321    "321/sensor"
-#define MQTT_SUBSCRIBE_TOPIC    "soil/time"
+#define MQTT_PUBLLISH_TOPIC_321    "3/sensor"
+#define MQTT_SUBSCRIBE_TOPIC    "soil3/time"
 #endif
 
 #define S (1000)
