@@ -15,7 +15,11 @@ idf_component_register(
          "screen/screen.c"
     INCLUDE_DIRS ".")
 
+
+
+
+    
 target_compile_definitions(${COMPONENT_LIB} PRIVATE 
      WX_STATION
-     HUAWEI_CLOUD
+    #  HUAWEI_CLOUD
 )

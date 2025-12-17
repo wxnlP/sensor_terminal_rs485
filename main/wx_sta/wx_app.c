@@ -178,7 +178,7 @@ static void WxUartQueueTask(void *arg)
                         // ESP_LOGI(WX_TAG, "Vaild frame.");
                         if (real_sensor_data.flag == ALL_SENSORS_RECEIVED || times > TIMEOUT_DEFAULT) {
                             print_WxStaDataFrame(&real_sensor_data);
-                            vTaskDelay(pdMS_TO_TICKS(500));
+                            // vTaskDelay(pdMS_TO_TICKS(500));
                             xQueueSend(wx_sta_data_handle, &real_sensor_data, 0);
                             xEventGroupSetBits(g_wxScreenEventHandle, WX_SCREEN_EVENT);
                             times = 0;
@@ -188,10 +188,10 @@ static void WxUartQueueTask(void *arg)
                         }
                         ESP_LOGI(WX_TAG, "frame times: %d", times);
                     }
-                    for (int i = 0; i < event.size; i++) {
-                        printf("%X ", data[i]);
-                    }
-                    printf("\n");
+                    // for (int i = 0; i < event.size; i++) {
+                    //     printf("%X ", data[i]);
+                    // }
+                    // printf("\n");
                     break;
                 case UART_FIFO_OVF:
                     ESP_LOGW(WX_TAG, "FIFO over.");

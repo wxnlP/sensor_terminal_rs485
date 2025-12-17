@@ -32,7 +32,7 @@ static void print_sensor_data(const SensorDataFrame_t *data)
 
     // --- 打印测量值 (使用 %.2f 格式化浮点数，保留两位小数) ---
     ESP_LOGI(TAG, "T_soil: %.2f C, H_soil: %.2f %%", 
-             (double)data->t_soil, (double)data->t_soil);
+             (double)data->t_soil, (double)data->h_soil);
 
     ESP_LOGI(TAG, "EC: %.2f, PH: %.2f", 
              (double)data->ec, (double)data->ph);

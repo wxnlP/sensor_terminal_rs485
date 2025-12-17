@@ -44,11 +44,6 @@ void app_main(void)
 
     while(true)
     {
-        int delay_time = GetTimeInterval();
-        LedCtrl(0);
-        vTaskDelay(pdMS_TO_TICKS(delay_time/2));
-        LedCtrl(1);
-        vTaskDelay(pdMS_TO_TICKS(delay_time/2));
 #ifndef WX_STATION
         for (int i = 1; i < 33; i++) {
             TransceiverSensorDataRequest(TRANSCEIVER_SOIL, i);
@@ -56,7 +51,8 @@ void app_main(void)
                                 SENSOR_COMPLETE_EVENT_BIT, 
                                 pdTRUE, 
                                 pdTRUE, 
-                                pdMS_TO_TICKS(1000));
+                                pdMS_TO_TICKS(2000));
+            // vTaskDelay(50);
         }
         for (int j = 1; j < 33; j++) {
             TransceiverSensorDataRequest(TRANSCEIVER_321, j);
@@ -64,7 +60,8 @@ void app_main(void)
                                 SENSOR_COMPLETE_EVENT_BIT, 
                                 pdTRUE, 
                                 pdTRUE, 
-                                pdMS_TO_TICKS(1000));
+                                pdMS_TO_TICKS(2000));
+            // vTaskDelay(50);
         }
         
         
@@ -72,24 +69,28 @@ void app_main(void)
         // 温湿度
         WxTHDataRequest(0x01);
         ESP_LOGI(MainTag, "温湿度");
-        vTaskDelay(pdMS_TO_TICKS(200));
+        vTaskDelay(pdMS_TO_TICKS(100));
         // 风速
         WxWindSpeedDataRequest(0x02);
         ESP_LOGI(MainTag, "风速");
-        vTaskDelay(pdMS_TO_TICKS(200));
+        vTaskDelay(pdMS_TO_TICKS(100));
         // 风向
         WxWindDirDataRequest(0x03);
         ESP_LOGI(MainTag, "风向");
-        vTaskDelay(pdMS_TO_TICKS(200));
+        vTaskDelay(pdMS_TO_TICKS(100));
         // 光照强度
         WxSunlightDataRequest(0x04);
         ESP_LOGI(MainTag, "光照");
-        vTaskDelay(pdMS_TO_TICKS(200));
+        vTaskDelay(pdMS_TO_TICKS(100));
         // 降雨量
         WxRainDataRequest(0x05);
         ESP_LOGI(MainTag, "降雨量");
-        vTaskDelay(pdMS_TO_TICKS(200));
+        vTaskDelay(pdMS_TO_TICKS(100));
 #endif
-
+        int delay_time = GetTimeInterval();
+        LedCtrl(0);
+        vTaskDelay(pdMS_TO_TICKS(delay_time/2));
+        LedCtrl(1);
+        vTaskDelay(pdMS_TO_TICKS(delay_time/2));
     }
 }

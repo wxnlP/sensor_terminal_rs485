@@ -20,8 +20,8 @@
 
 #else
 
-#define MQTT_URI                "mqtt://u2f8813a.ala.dedicated.huawei.emqxcloud.cn:1883"
-// #define MQTT_URI                "mqtt://192.168.43.4:1883"
+// #define MQTT_URI                "mqtt://u2f8813a.ala.dedicated.huawei.emqxcloud.cn:1883"
+#define MQTT_URI                "mqtt://192.168.1.135:1883"
 #define MQTT_USERNAME           "weather"
 #define MQTT_PASSWD             "weather123"
 #define MQTT_CLIENT_ID          "weather"
@@ -33,7 +33,7 @@
 #define S (1000)
 #define M (60 * S)
 #define H (60 * M)
-#define DEFAULT_UPLOAD_TIME_INTERVAL (10 * S)
+#define DEFAULT_UPLOAD_TIME_INTERVAL (60 * S)
 
 static int g_uploadTimeInterval;
 static const char *MQTT_WX = "mqtt_wx";
@@ -157,8 +157,8 @@ static void MqttConnEventHandleTask(void *arg)
                     ESP_LOGI(MQTT_WX, "Disconnect MQTT Broker.");
                     break;
                 }
-                ESP_LOGI(MQTT_WX, "Time interval: %llu", g_uploadTimeInterval);
-                vTaskDelay(pdMS_TO_TICKS(g_uploadTimeInterval));
+                ESP_LOGI(MQTT_WX, "Time interval: %d", g_uploadTimeInterval);
+                // vTaskDelay(pdMS_TO_TICKS(g_uploadTimeInterval));
             }      
         }
     }

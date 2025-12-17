@@ -6,11 +6,14 @@
 #include "esp_wifi.h"
 #include "esp_event.h"
 #include "esp_netif.h"
+// #include "esp_wifi_internal.h"
 
 
 /* ------------------------------------ 宏定义 ------------------------------------- */
-#define WIFI_SSID                   "Mate70"
-#define WIFI_PASSWORD               "123456789"
+// #define WIFI_SSID                   "Mate70"
+// #define WIFI_PASSWORD               "123456789"
+#define WIFI_SSID                   "ChinaNet-5854"
+#define WIFI_PASSWORD               "ct123456"
 #define WIFI_CONNECT_MAX_TIMES      10
 #define WIFI_CONNECTED_EVENT_BIT    (1<<0)
 #define WIFI_DISCONNECTED_EVENT_BIT (1<<1)
@@ -81,10 +84,14 @@ void WifiStaInit(void)
             .password = WIFI_PASSWORD,
             // auth mode（认证模式）默认为 WPA2，即password >= 8
             .threshold.authmode = WIFI_AUTH_WPA2_PSK,
-            .scan_method = WIFI_FAST_SCAN,
+            .scan_method = WIFI_ALL_CHANNEL_SCAN,
+            .threshold.rssi = -85,
         }
     };
+    esp_wifi_set_ps(WIFI_PS_NONE);
     esp_wifi_set_config(WIFI_IF_STA, &wifi_config);
+    esp_wifi_set_max_tx_power(84);
+    // esp_wifi_internal_set_rate_low_power
 
 
     ESP_LOGI(WIFI_TAG, "3.启动阶段");

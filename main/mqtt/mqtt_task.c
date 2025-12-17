@@ -81,9 +81,11 @@ void MqttInit(const char* uri, const char* user_name, const char* passwd, const 
         .credentials.authentication.password = passwd,
         .session.disable_clean_session = false,
         .session.protocol_ver = MQTT_PROTOCOL_V_3_1_1,
+        .session.keepalive = 60,
         // .session.last_will
-        .network.reconnect_timeout_ms = 3000,
-        .buffer.out_size = 1024 * 4
+        .network.reconnect_timeout_ms = 5000,
+        .buffer.out_size = 1024 * 4,
+        // .network.timeout_ms = 10000,
     };
 
     g_mqttClientHandle = esp_mqtt_client_init(&config);

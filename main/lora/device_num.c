@@ -21,7 +21,7 @@
  * @return int 成功写入的字符数
  */
 int generate_ss_name(int index, char *buffer) {
-    if (index < 1 || index > 18) {
+    if (index < 1 || index > 32) {
         return -1; // 索引越界
     }
 
@@ -30,9 +30,11 @@ int generate_ss_name(int index, char *buffer) {
     if (index % 2 != 0) {
         // 奇数索引: 5cm 深度
         depth_code = SS_DEPTH_5CM;
+        index = (index+1)/2;
     } else {
         // 偶数索引: 20cm 深度
         depth_code = SS_DEPTH_20CM;
+        index = (index)/2;
     }
 
     // 3. 使用 snprintf 拼接字符串 (snprintf 更安全，可防止缓冲区溢出)
@@ -53,7 +55,7 @@ int generate_ss_name(int index, char *buffer) {
  * @return int 成功写入的字符数
  */
 int generate_pspc_name(int index, char *buffer) {
-    if (index < 1 || index > 18) {
+    if (index < 1 || index > 32) {
         return -1; // 索引越界
     }
 
@@ -62,7 +64,9 @@ int generate_pspc_name(int index, char *buffer) {
     if (index % 2 != 0) {
         // 奇数索引: ps (棚边 - side)
         type_code = "ps";
+        index = (index+1)/2;
     } else {
+        index = (index)/2;
         // 偶数索引: pc (棚中 - center)
         type_code = "pc";
     }

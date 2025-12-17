@@ -20,8 +20,8 @@
 #define  MQTT_RequestTopic      "$oc/devices/677388cfbab900244b135588_DATAS/sys/shadow/get/request_id={request_id}"
 #define  MQTT_SUBSCRIBE_TOPIC    "$oc/devices/677388cfbab900244b135588_DATAS/sys/shadow/get/response/#"
 #else
-#define MQTT_URI                "mqtt://u2f8813a.ala.dedicated.huawei.emqxcloud.cn:1883"
-// #define MQTT_URI                "mqtt://192.168.43.4:1883"
+// #define MQTT_URI                "mqtt://u2f8813a.ala.dedicated.huawei.emqxcloud.cn:1883"
+#define MQTT_URI                "mqtt://192.168.1.135:1883"
 #define MQTT_USERNAME           "soil3"
 #define MQTT_PASSWD             "soil3123"
 #define MQTT_CLIENT_ID          "soil3"
@@ -35,7 +35,7 @@
 #define S (1000)
 #define M (60 * S)
 #define H (60 * M)
-#define DEFAULT_UPLOAD_TIME_INTERVAL (10 * S)
+#define DEFAULT_UPLOAD_TIME_INTERVAL (1 * M)
 
 static int g_uploadTimeInterval;
 static const char *MQTT_LORA = "mqtt_lora";
@@ -175,7 +175,7 @@ static void MqttConnEventHandleTask(void *arg)
                     ESP_LOGI(MQTT_LORA, "Disconnect MQTT Broker.");
                     break;
                 }
-                ESP_LOGI(MQTT_LORA, "Time interval: %llu", g_uploadTimeInterval);
+                ESP_LOGI(MQTT_LORA, "Time interval: %d", g_uploadTimeInterval);
             }
         }
     }
@@ -203,27 +203,27 @@ static void MqttSubQueueHandleTask(void *arg)
                 switch (time_setting.unit) {
                     case 'S':
                         ESP_LOGI(MQTT_LORA, "修改单位S");
-                        g_uploadTimeInterval = time_setting.time * S;
+                        g_uploadTimeInterval = (int)time_setting.time * S;
                         break;
                     case 's':
                         ESP_LOGI(MQTT_LORA, "修改单位S");
-                        g_uploadTimeInterval = time_setting.time * S;
+                        g_uploadTimeInterval = (int)time_setting.time * S;
                         break;
                     case 'M':
                         ESP_LOGI(MQTT_LORA, "修改单位M");
-                        g_uploadTimeInterval = time_setting.time * M;
+                        g_uploadTimeInterval = (int)time_setting.time * M;
                         break;
                     case 'm':
                         ESP_LOGI(MQTT_LORA, "修改单位M");
-                        g_uploadTimeInterval = time_setting.time * M;
+                        g_uploadTimeInterval = (int)time_setting.time * M;
                         break;
                     case 'H':
                         ESP_LOGI(MQTT_LORA, "修改单位H");
-                        g_uploadTimeInterval = time_setting.time * H;
+                        g_uploadTimeInterval = (int)time_setting.time * H;
                         break;
                     case 'h':
                         ESP_LOGI(MQTT_LORA, "修改单位H");
-                        g_uploadTimeInterval = time_setting.time * H;
+                        g_uploadTimeInterval = (int)time_setting.time * H;
                         break;
                     default:
                         ESP_LOGI(MQTT_LORA, "格式错误❌️");
