@@ -1,4 +1,4 @@
-#ifndef MQTT_TASk_H
+#ifndef MQTT_TASK_H
 #define MQTT_TASK_H
 
 #include "freertos/FreeRTOS.h"
